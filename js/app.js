@@ -42,6 +42,12 @@ document.addEventListener('DOMContentLoaded', function () {
         window.location.href = 'chat.html';
     });
 
+    // === 在这里添加日记按钮跳转 ===
+    const diaryPageBtn = document.getElementById('diaryPageBtn');
+    diaryPageBtn.addEventListener('click', function() {
+        window.location.href = 'diary.html';
+    });
+
     // 测试连接函数
     async function testConnection() {
         try {
@@ -302,3 +308,4 @@ document.addEventListener('DOMContentLoaded', function () {
         cardCounter.textContent = `当前有 ${cardCount} 条留言`;
     }
 });
+
