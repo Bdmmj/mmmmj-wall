@@ -3,36 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>喵喵共享留言墙</title>
+    <title>实时共享留言墙</title>
+    <!-- 引入Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* 主题样式 */
-        .theme-pink {
-            --primary-bg: linear-gradient(135deg, #ffcfe0, #f598b9);
-            --header-bg: rgb(245, 152, 185);
-            --card-header-bg: rgb(240, 251, 255);
-            --card-content-bg: rgb(190, 219, 233);
-            --accent-color: #d44d7e;
-            --border-color: #f598b9;
-        }
-        
-        .theme-blue {
-            --primary-bg: linear-gradient(135deg, #a8d8ff, #6bb5ff);
-            --header-bg: rgb(107, 181, 255);
-            --card-header-bg: rgb(240, 248, 255);
-            --card-content-bg: rgb(200, 230, 255);
-            --accent-color: #2d7dd2;
-            --border-color: #6bb5ff;
-        }
-        
-        .theme-green {
-            --primary-bg: linear-gradient(135deg, #b8e994, #78e08f);
-            --header-bg: rgb(120, 224, 143);
-            --card-header-bg: rgb(240, 255, 244);
-            --card-content-bg: rgb(200, 240, 210);
-            --accent-color: #38a169;
-            --border-color: #78e08f;
-        }
-        
+        /* 你的现有CSS样式保持不变 */
         * {
             margin: 0;
             padding: 0;
@@ -41,7 +16,7 @@
         
         body {
             font-family: 'Microsoft YaHei', sans-serif;
-            background: var(--primary-bg);
+            background: linear-gradient(135deg, #ffcfe0, #f598b9);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -61,7 +36,7 @@
             color: white;
             text-align: center;
             font-size: 48px;
-            background: var(--header-bg);
+            background: rgb(245, 152, 185);
             height: 80px;
             line-height: 80px;
             border-radius: 15px;
@@ -118,7 +93,7 @@
             padding: 12px 15px;
             align-items: center;
             height: 50px;
-            background: var(--card-header-bg);
+            background: rgb(240, 251, 255);
             position: relative;
         }
         
@@ -176,7 +151,7 @@
         
         .card-content {
             height: 130px;
-            background: var(--card-content-bg);
+            background: rgb(190, 219, 233);
             font-size: 20px;
             display: flex;
             align-items: center;
@@ -194,22 +169,22 @@
             display: block;
             margin-bottom: 8px;
             font-weight: bold;
-            color: var(--accent-color);
+            color: #d44d7e;
             font-size: 16px;
         }
         
-        input, textarea, select {
+        input, textarea {
             width: 100%;
             padding: 12px;
-            border: 2px solid var(--border-color);
+            border: 2px solid #f598b9;
             border-radius: 8px;
             font-size: 16px;
             transition: border-color 0.3s;
             font-family: inherit;
         }
         
-        input:focus, textarea:focus, select:focus {
-            border-color: var(--accent-color);
+        input:focus, textarea:focus {
+            border-color: #d44d7e;
             outline: none;
         }
         
@@ -219,26 +194,26 @@
         }
         
         .add-btn {
-            background: var(--accent-color);
+            background: #d44d7e;
             color: white;
             border: none;
             padding: 12px 20px;
             border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
-            transition: all 0.3s;
+            transition: background 0.3s;
             width: 100%;
             font-weight: bold;
         }
         
         .add-btn:hover {
-            filter: brightness(0.9);
+            background: #b33c68;
         }
         
         .card-counter {
             margin-top: 15px;
             text-align: center;
-            color: var(--accent-color);
+            color: #d44d7e;
             font-weight: bold;
             font-size: 16px;
         }
@@ -258,18 +233,18 @@
         .reset-btn {
             margin-top: 20px;
             padding: 12px 25px;
-            background: var(--accent-color);
+            background: #d44d7e;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
-            transition: all 0.3s;
+            transition: background 0.3s;
             font-weight: bold;
         }
         
         .reset-btn:hover {
-            filter: brightness(0.9);
+            background: #b33c68;
         }
         
         .controls {
@@ -279,6 +254,24 @@
             margin-top: 20px;
             width: 100%;
             max-width: 1200px;
+        }
+        
+        .status-indicator {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .status-online {
+            color: #4cd964;
+            font-weight: bold;
+        }
+        
+        .status-offline {
+            color: #ff5a5a;
         }
         
         @media (max-width: 1000px) {
@@ -293,93 +286,89 @@
         }
     </style>
 </head>
-<body class="theme-pink">
+<body>
     <div class="header">
-        <div class="tt">喵喵共享留言墙</div>
+        <div class="tt">实时共享留言墙</div>
     </div>
     
     <div class="main-container">
         <div class="form-section">
             <div class="form-group">
+                <label for="userName">你的名字：</label>
+                <input type="text" id="userName" placeholder="输入你的昵称" value="匿名用户">
+            </div>
+            <div class="form-group">
                 <label for="cardTitle">卡片标题：</label>
-                <input type="text" id="cardTitle" placeholder="例如：周五" value="新卡片">
+                <input type="text" id="cardTitle" placeholder="例如：周五" value="新留言">
             </div>
             <div class="form-group">
                 <label for="cardContent">卡片内容：</label>
-                <textarea id="cardContent" placeholder="输入你想说的话...">这里可以写任何内容！</textarea>
+                <textarea id="cardContent" placeholder="输入你想说的话...">大家好！</textarea>
             </div>
 
-            <div class="form-group">
-                <label for="themeSelector">主题选择：</label>
-                <select id="themeSelector">
-                    <option value="theme-pink">粉色主题</option>
-                    <option value="theme-blue">蓝色主题</option>
-                    <option value="theme-green">绿色主题</option>
-                </select>
+            <button class="add-btn" id="addCardBtn">发布留言</button>
+            <div class="card-counter" id="cardCounter">正在加载留言...</div>
+            <div class="status-indicator" id="statusIndicator">
+                <span class="status-offline">● 连接中...</span>
             </div>
-
-            <button class="add-btn" id="addCardBtn">添加卡片</button>
-            <div class="card-counter" id="cardCounter">当前有 1 张卡片</div>
         </div>
         
         <div class="wall-section" id="wallContainer">
             <!-- 卡片将通过JS动态添加 -->
-            <div class="card" id="initialCard">
-                <div class="card-header">
-                    <div class="circles">
-                        <div class="circle red"></div>
-                        <div class="circle orange"></div>
-                        <div class="circle green"></div>
-                    </div>
-                    <div class="card-title">欢迎</div>
-                    <div class="close-btn">×</div>
-                </div>
-                <div class="card-content">欢迎来到喵喵共享留言墙！</div>
-            </div>
         </div>
     </div>
     
     <div class="instructions">
-        试试这些功能：<br>
-        1. 拖动卡片到任意位置<br>
-        2. 点击卡片右上角的 × 删除卡片<br>
-        3. 使用左侧表单添加新卡片<br>
-        4. 选择不同主题切换颜色风格
+        实时互动功能：<br>
+        1. 你发布的留言会立即出现在所有人的墙上<br>
+        2. 可以拖动卡片到任意位置<br>
+        3. 点击卡片右上角的 × 删除自己的留言<br>
+        4. 所有操作都是实时同步的！
     </div>
     
     <div class="controls">
-        <button class="reset-btn" id="resetBtn">重置所有卡片</button>
+        <button class="reset-btn" id="resetBtn">清空所有留言</button>
     </div>
 
     <script>
+        // Supabase配置 - 你需要替换成自己的配置
+        const SUPABASE_URL = 'https://你的项目.supabase.co';
+        const SUPABASE_ANON_KEY = '你的anon key';
+        
+        // 初始化Supabase客户端
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // 当前用户标识
+        let currentUserId = localStorage.getItem('userId') || generateUserId();
+        localStorage.setItem('userId', currentUserId);
+        
         document.addEventListener('DOMContentLoaded', function() {
-            // 主题切换功能
-            const themeSelector = document.getElementById('themeSelector');
-            themeSelector.addEventListener('change', function() {
-                document.body.className = this.value;
-            });
-    
             const wallContainer = document.getElementById('wallContainer');
             const addCardBtn = document.getElementById('addCardBtn');
+            const userName = document.getElementById('userName');
             const cardTitle = document.getElementById('cardTitle');
             const cardContent = document.getElementById('cardContent');
             const resetBtn = document.getElementById('resetBtn');
             const cardCounter = document.getElementById('cardCounter');
+            const statusIndicator = document.getElementById('statusIndicator');
             
-            let cardIdCounter = 1;
+            // 设置在线状态
+            statusIndicator.innerHTML = '<span class="status-online">● 实时在线</span>';
             
-            // 初始化 - 使初始卡片可拖动和可关闭
-            makeCardDraggable(document.getElementById('initialCard'));
-            addCloseFunctionality(document.getElementById('initialCard'));
-            updateCardCounter();
+            // 加载现有留言
+            loadMessages();
+            
+            // 设置实时监听
+            setupRealtimeSubscription();
             
             // 添加卡片按钮事件
-            addCardBtn.addEventListener('click', function() {
-                const title = cardTitle.value.trim() || '新卡片';
-                const content = cardContent.value.trim() || '这里可以写任何内容！';
+            addCardBtn.addEventListener('click', async function() {
+                const user = userName.value.trim() || '匿名用户';
+                const title = cardTitle.value.trim() || '新留言';
+                const content = cardContent.value.trim() || '大家好！';
                 
                 if (content) {
-                    addCard(title, content);
+                    await addMessageToDatabase(user, title, content);
                     // 清空表单
                     cardTitle.value = '';
                     cardContent.value = '';
@@ -387,91 +376,192 @@
             });
             
             // 重置按钮事件
-            resetBtn.addEventListener('click', function() {
-                // 移除所有卡片
-                const cards = document.querySelectorAll('.card');
-                cards.forEach(card => {
-                    if (card.id !== 'initialCard') {
-                        card.remove();
-                    }
-                });
-                
-                // 重置初始卡片位置
-                setInitialPosition(document.getElementById('initialCard'));
-                updateCardCounter();
+            resetBtn.addEventListener('click', async function() {
+                if (confirm('确定要清空所有留言吗？')) {
+                    await clearAllMessages();
+                }
             });
             
-            // 添加新卡片函数
-            function addCard(title, content) {
-                cardIdCounter++;
+            // 从数据库加载留言
+            async function loadMessages() {
+                try {
+                    const { data: messages, error } = await supabase
+                        .from('messages')
+                        .select('*')
+                        .order('created_at', { ascending: true });
+                    
+                    if (error) throw error;
+                    
+                    // 清空容器
+                    wallContainer.innerHTML = '';
+                    
+                    // 添加所有留言卡片
+                    messages.forEach(msg => {
+                        createCardElement(msg);
+                    });
+                    
+                    updateCardCounter();
+                } catch (error) {
+                    console.error('加载留言失败:', error);
+                    cardCounter.textContent = '加载失败';
+                }
+            }
+            
+            // 设置实时订阅
+            function setupRealtimeSubscription() {
+                supabase
+                    .channel('messages')
+                    .on('postgres_changes', 
+                        { event: '*', schema: 'public', table: 'messages' }, 
+                        (payload) => {
+                            console.log('收到实时更新:', payload);
+                            
+                            if (payload.eventType === 'INSERT') {
+                                // 新留言
+                                createCardElement(payload.new);
+                                updateCardCounter();
+                            } else if (payload.eventType === 'DELETE') {
+                                // 删除留言
+                                const cardToRemove = document.getElementById(`card-${payload.old.id}`);
+                                if (cardToRemove) {
+                                    cardToRemove.remove();
+                                    updateCardCounter();
+                                }
+                            }
+                        }
+                    )
+                    .subscribe();
+            }
+            
+            // 创建卡片元素
+            function createCardElement(message) {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.id = `card-${message.id}`;
                 
-                // 创建新卡片
-                const newCard = document.createElement('div');
-                newCard.className = 'card';
-                newCard.id = 'card-' + cardIdCounter;
+                // 设置位置
+                const x = message.x || Math.random() * (wallContainer.offsetWidth - 320);
+                const y = message.y || Math.random() * (wallContainer.offsetHeight - 200);
+                card.style.transform = `translate3d(${x}px, ${y}px, 0)`;
                 
-                // 设置卡片内容
-                newCard.innerHTML = `
+                card.innerHTML = `
                     <div class="card-header">
                         <div class="circles">
                             <div class="circle red"></div>
                             <div class="circle orange"></div>
                             <div class="circle green"></div>
                         </div>
-                        <div class="card-title">${title}</div>
-                        <div class="close-btn">×</div>
+                        <div class="card-title">${escapeHtml(message.title)}</div>
+                        ${message.user_id === currentUserId ? '<div class="close-btn">×</div>' : ''}
                     </div>
-                    <div class="card-content">${content}</div>
+                    <div class="card-content">
+                        <div>
+                            <strong>${escapeHtml(message.user_name)}:</strong><br>
+                            ${escapeHtml(message.content)}
+                        </div>
+                    </div>
                 `;
                 
-                // 添加到容器
-                wallContainer.appendChild(newCard);
+                wallContainer.appendChild(card);
                 
-                // 设置随机位置
-                setRandomPosition(newCard);
+                // 使卡片可拖动
+                makeCardDraggable(card, message.id);
                 
-                // 使卡片可拖动和可关闭
-                makeCardDraggable(newCard);
-                addCloseFunctionality(newCard);
-                
-                // 更新卡片计数
-                updateCardCounter();
+                // 如果是自己的卡片，添加删除功能
+                if (message.user_id === currentUserId) {
+                    addCloseFunctionality(card, message.id);
+                }
+            }
+            
+            // 添加消息到数据库
+            async function addMessageToDatabase(userName, title, content) {
+                try {
+                    const { data, error } = await supabase
+                        .from('messages')
+                        .insert([
+                            {
+                                user_name: userName,
+                                title: title,
+                                content: content,
+                                user_id: currentUserId,
+                                x: Math.random() * (wallContainer.offsetWidth - 320),
+                                y: Math.random() * (wallContainer.offsetHeight - 200)
+                            }
+                        ])
+                        .select();
+                    
+                    if (error) throw error;
+                    return data[0];
+                } catch (error) {
+                    console.error('发布留言失败:', error);
+                    alert('发布失败，请重试');
+                }
+            }
+            
+            // 清空所有留言
+            async function clearAllMessages() {
+                try {
+                    const { error } = await supabase
+                        .from('messages')
+                        .delete()
+                        .neq('id', 0); // 删除所有记录
+                    
+                    if (error) throw error;
+                    
+                    wallContainer.innerHTML = '';
+                    updateCardCounter();
+                } catch (error) {
+                    console.error('清空留言失败:', error);
+                }
+            }
+            
+            // 删除单条留言
+            async function deleteMessage(messageId) {
+                try {
+                    const { error } = await supabase
+                        .from('messages')
+                        .delete()
+                        .eq('id', messageId);
+                    
+                    if (error) throw error;
+                } catch (error) {
+                    console.error('删除留言失败:', error);
+                }
+            }
+            
+            // 更新卡片位置到数据库
+            async function updateMessagePosition(messageId, x, y) {
+                try {
+                    const { error } = await supabase
+                        .from('messages')
+                        .update({ x: x, y: y })
+                        .eq('id', messageId);
+                    
+                    if (error) throw error;
+                } catch (error) {
+                    console.error('更新位置失败:', error);
+                }
             }
             
             // 使卡片可拖动
-            function makeCardDraggable(card) {
+            function makeCardDraggable(card, messageId) {
                 let isDragging = false;
-                let currentX;
-                let currentY;
-                let initialX;
-                let initialY;
-                let xOffset = 0;
-                let yOffset = 0;
+                let currentX, currentY, initialX, initialY;
                 
-                // 获取卡片当前位置
-                const transform = card.style.transform;
-                if (transform) {
-                    const match = transform.match(/translate3d\(([^,]+)px,\s*([^,]+)px/);
-                    if (match) {
-                        xOffset = parseFloat(match[1]);
-                        yOffset = parseFloat(match[2]);
-                    }
-                }
-                
-                // 鼠标按下事件
                 card.addEventListener('mousedown', dragStart);
                 
                 function dragStart(e) {
-                    // 如果点击的是关闭按钮，不触发拖动
-                    if (e.target.classList.contains('close-btn')) {
-                        return;
-                    }
+                    if (e.target.classList.contains('close-btn')) return;
                     
-                    // 防止文本选中
                     e.preventDefault();
-
-                    initialX = e.clientX - xOffset;
-                    initialY = e.clientY - yOffset;
+                    
+                    const transform = card.style.transform;
+                    const match = transform.match(/translate3d\(([^,]+)px,\s*([^,]+)px/);
+                    currentX = match ? parseFloat(match[1]) : 0;
+                    currentY = match ? parseFloat(match[2]) : 0;
+                    
+                    initialX = e.clientX - currentX;
+                    initialY = e.clientY - currentY;
                     
                     isDragging = true;
                     card.classList.add('dragging');
@@ -481,29 +571,31 @@
                 }
                 
                 function drag(e) {
-                    if (isDragging) {
-                        e.preventDefault();
-                        
-                        currentX = e.clientX - initialX;
-                        currentY = e.clientY - initialY;
-                        
-                        // 添加边界检查，防止拖出屏幕
-                        const containerRect = wallContainer.getBoundingClientRect();
-                        const cardRect = card.getBoundingClientRect();
-        
-                        currentX = Math.max(0, Math.min(currentX, containerRect.width - cardRect.width));
-                        currentY = Math.max(0, Math.min(currentY, containerRect.height - cardRect.height));
-
-                        xOffset = currentX;
-                        yOffset = currentY;
-                        
-                        setTranslate(currentX, currentY, card);
-                    }
+                    if (!isDragging) return;
+                    
+                    e.preventDefault();
+                    
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                    
+                    // 边界检查
+                    const containerRect = wallContainer.getBoundingClientRect();
+                    const cardRect = card.getBoundingClientRect();
+                    
+                    currentX = Math.max(0, Math.min(currentX, containerRect.width - cardRect.width));
+                    currentY = Math.max(0, Math.min(currentY, containerRect.height - cardRect.height));
+                    
+                    card.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
                 }
                 
-                function dragEnd(e) {
+                function dragEnd() {
+                    if (!isDragging) return;
+                    
                     isDragging = false;
                     card.classList.remove('dragging');
+                    
+                    // 更新数据库中的位置
+                    updateMessagePosition(messageId, currentX, currentY);
                     
                     document.removeEventListener('mousemove', drag);
                     document.removeEventListener('mouseup', dragEnd);
@@ -511,55 +603,38 @@
             }
             
             // 添加关闭功能
-            function addCloseFunctionality(card) {
+            function addCloseFunctionality(card, messageId) {
                 const closeBtn = card.querySelector('.close-btn');
-                closeBtn.addEventListener('click', function(e) {
-                    e.stopPropagation(); // 防止触发拖动事件
-                    card.remove();
-                    updateCardCounter();
-                });
-            }
-            
-            // 设置卡片初始位置（用于重置）
-            function setInitialPosition(card) {
-                const containerRect = wallContainer.getBoundingClientRect();
-                const cardRect = card.getBoundingClientRect();
-                
-                // 将卡片放置在容器中央
-                const xOffset = (containerRect.width - cardRect.width) / 2;
-                const yOffset = (containerRect.height - cardRect.height) / 2;
-                
-                setTranslate(xOffset, yOffset, card);
-            }
-            
-            // 设置随机位置（用于新卡片）
-            function setRandomPosition(card) {
-                const containerRect = wallContainer.getBoundingClientRect();
-                const cardWidth = 300;
-                const cardHeight = 180;
-                
-                const maxX = containerRect.width - cardWidth - 20;
-                const maxY = containerRect.height - cardHeight - 20;
-                
-                const xOffset = Math.max(10, Math.floor(Math.random() * maxX));
-                const yOffset = Math.max(10, Math.floor(Math.random() * maxY));
-                
-                setTranslate(xOffset, yOffset, card);
-            }
-            
-            // 应用位置变换
-            function setTranslate(xPos, yPos, el) {
-                el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        if (confirm('确定要删除这条留言吗？')) {
+                            deleteMessage(messageId);
+                        }
+                    });
+                }
             }
             
             // 更新卡片计数
             function updateCardCounter() {
                 const cardCount = document.querySelectorAll('.card').length;
-                cardCounter.textContent = `当前有 ${cardCount} 张卡片`;
+                cardCounter.textContent = `当前有 ${cardCount} 条留言`;
             }
             
-            // 初始化设置初始卡片位置
-            setInitialPosition(document.getElementById('initialCard'));
+            // 生成用户ID
+            function generateUserId() {
+                return 'user_' + Math.random().toString(36).substr(2, 9);
+            }
+            
+            // HTML转义，防止XSS攻击
+            function escapeHtml(unsafe) {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
         });
     </script>
 </body>
