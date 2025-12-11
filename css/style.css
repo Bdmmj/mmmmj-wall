@@ -14,7 +14,7 @@
 body {
     font-family: 'Microsoft YaHei', sans-serif, "PingFang SC", "Hiragino Sans GB";
     background:
-        linear-gradient(135deg, rgba(255, 207, 224, 0), rgba(245, 152, 185, 0.8)),
+        linear-gradient(135deg, rgba(255, 207, 224, 0.8), rgba(245, 152, 185, 0.8)),
         url('../images/background.jpg') center/cover no-repeat fixed;
     min-height: 100vh;
     display: flex;
@@ -22,8 +22,34 @@ body {
     align-items: center;
     padding: 20px;
     color: #333;
-    overflow-x: hidden;
     -webkit-tap-highlight-color: transparent;
+    
+    /* 添加这行确保在需要时可以滚动 */
+    overflow-x: auto;
+}
+
+/* 卡片容器 */
+.wall-section {
+    /* 允许卡片拖出可视区域 */
+    overflow: visible;
+    
+    /* 手机端优化 */
+    @media (max-width: 768px) {
+        /* 允许触摸拖动 */
+        touch-action: pan-x pan-y;
+        
+        /* 如果需要限制在容器内拖动 */
+        /* overflow: auto; */
+    }
+}
+
+/* 卡片本身 */
+.card {
+    /* 确保卡片可以在墙内任意拖动 */
+    position: absolute;
+    
+    /* 手机端触摸优化 */
+    touch-action: none; /* 允许触摸拖动 */
 }
 
 /* 响应式标题 */
