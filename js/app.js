@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // === 在这里添加日记按钮跳转 ===
     const diaryPageBtn = document.getElementById('diaryPageBtn');
-    diaryPageBtn.addEventListener('click', function() {
+    diaryPageBtn.addEventListener('click', function () {
         window.location.href = 'diary.html';
     });
 
@@ -93,7 +93,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // 设置实时订阅
     function setupRealtimeSubscription() {
         supabase
             .channel('messages')
@@ -107,11 +106,22 @@ document.addEventListener('DOMContentLoaded', function () {
                         createCardElement(payload.new);
                         updateCardCounter();
                     } else if (payload.eventType === 'DELETE') {
-                        // 删除留言
+                        // 删除留言 - 添加动画效果
                         const cardToRemove = document.getElementById(`card-${payload.old.id}`);
                         if (cardToRemove) {
-                            cardToRemove.remove();
-                            updateCardCounter();
+                            // 如果是当前用户触发的删除，不需要重复动画
+                            if (!cardToRemove.classList.contains('deleting')) {
+                                cardToRemove.style.transition = 'all 0.3s ease';
+                                cardToRemove.style.opacity = '0';
+                                cardToRemove.style.transform = `${cardToRemove.style.transform} scale(0.8)`;
+
+                                setTimeout(() => {
+                                    if (cardToRemove.parentNode) {
+                                        cardToRemove.remove();
+                                        updateCardCounter();
+                                    }
+                                }, 300);
+                            }
                         }
                     }
                 }
@@ -203,6 +213,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // 删除单条留言
+    // 删除单条留言
     async function deleteMessage(messageId) {
         try {
             const { error } = await supabase
@@ -211,8 +222,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 .eq('id', messageId);
 
             if (error) throw error;
+
+            return true; // 返回成功状态
         } catch (error) {
             console.error('删除留言失败:', error);
+            return false; // 返回失败状态
         }
     }
 
@@ -293,10 +307,33 @@ document.addEventListener('DOMContentLoaded', function () {
     function addCloseFunctionality(card, messageId) {
         const closeBtn = card.querySelector('.close-btn');
         if (closeBtn) {
-            closeBtn.addEventListener('click', function (e) {
+            closeBtn.addEventListener('click', async function (e) {
                 e.stopPropagation();
+
+                // 添加确认对话框
                 if (confirm('确定要删除这条留言吗？')) {
-                    deleteMessage(messageId);
+                    // 先执行删除动画
+                    card.style.transition = 'all 0.3s ease';
+                    card.style.opacity = '0';
+                    card.style.transform = `${card.style.transform} scale(0.8)`;
+
+                    // 从数据库删除
+                    const success = await deleteMessage(messageId);
+
+                    if (success) {
+                        // 等待动画完成后再从DOM移除
+                        setTimeout(() => {
+                            if (card.parentNode) {
+                                card.remove();
+                                updateCardCounter();
+                            }
+                        }, 300);
+                    } else {
+                        // 删除失败，恢复卡片
+                        card.style.opacity = '1';
+                        card.style.transform = card.style.transform.replace(' scale(0.8)', '');
+                        alert('删除失败，请重试');
+                    }
                 }
             });
         }
