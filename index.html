@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>实时共享留言墙</title>
+    <title>bdmmj的留言墙</title>
     <!-- 引入Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- 引入CSS -->
@@ -12,13 +12,13 @@
 
 <body>
     <div class="header">
-        <div class="tt">实时共享留言墙</div>
+        <div class="tt">bdmmj的留言墙</div>
     </div>
 
     <div class="main-container">
         <div class="form-section">
             <div class="form-group">
-                <label for="userName">你的名字：</label>
+                <label for="userName">昵称：</label>
                 <input type="text" id="userName" placeholder="输入你的昵称" value="匿名用户">
             </div>
             <div class="form-group">
@@ -52,8 +52,6 @@
 
     <div class="controls">
         <button class="reset-btn" id="resetBtn">清空所有留言</button>
-        <button class="chat-btn" id="chatPageBtn">进入聊天室</button>
-        <button class="diary-btn" id="diaryPageBtn">我的日记</button>
     </div>
 
     <!-- 引入JS文件（注意顺序！） -->
