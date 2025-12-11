@@ -42,12 +42,6 @@ document.addEventListener('DOMContentLoaded', function () {
         window.location.href = 'chat.html';
     });
 
-    // === 在这里添加日记按钮跳转 ===
-    const diaryPageBtn = document.getElementById('diaryPageBtn');
-    diaryPageBtn.addEventListener('click', function () {
-        window.location.href = 'diary.html';
-    });
-
     // 测试连接函数
     async function testConnection() {
         try {
@@ -249,35 +243,62 @@ document.addEventListener('DOMContentLoaded', function () {
         let isDragging = false;
         let currentX, currentY, initialX, initialY;
 
+        // 添加鼠标和触摸事件
         card.addEventListener('mousedown', dragStart);
+        card.addEventListener('touchstart', dragStart, { passive: false });
 
         function dragStart(e) {
             if (e.target.classList.contains('close-btn')) return;
 
             e.preventDefault();
+            e.stopPropagation();
+
+            // 获取触摸点或鼠标点
+            let clientX, clientY;
+            if (e.type === 'touchstart') {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
 
             const transform = card.style.transform;
             const match = transform.match(/translate3d\(([^,]+)px,\s*([^,]+)px/);
             currentX = match ? parseFloat(match[1]) : 0;
             currentY = match ? parseFloat(match[2]) : 0;
 
-            initialX = e.clientX - currentX;
-            initialY = e.clientY - currentY;
+            initialX = clientX - currentX;
+            initialY = clientY - currentY;
 
             isDragging = true;
             card.classList.add('dragging');
 
+            // 添加移动事件
             document.addEventListener('mousemove', drag);
+            document.addEventListener('touchmove', drag, { passive: false });
             document.addEventListener('mouseup', dragEnd);
+            document.addEventListener('touchend', dragEnd);
         }
 
         function drag(e) {
             if (!isDragging) return;
 
             e.preventDefault();
+            e.stopPropagation();
 
-            currentX = e.clientX - initialX;
-            currentY = e.clientY - initialY;
+            // 获取触摸点或鼠标点
+            let clientX, clientY;
+            if (e.type === 'touchmove') {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
+            currentX = clientX - initialX;
+            currentY = clientY - initialY;
 
             // 边界检查
             const containerRect = wallContainer.getBoundingClientRect();
@@ -289,17 +310,20 @@ document.addEventListener('DOMContentLoaded', function () {
             card.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
         }
 
-        function dragEnd() {
+        function dragEnd(e) {
             if (!isDragging) return;
 
             isDragging = false;
             card.classList.remove('dragging');
 
+            // 移除事件监听
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('touchmove', drag);
+            document.removeEventListener('mouseup', dragEnd);
+            document.removeEventListener('touchend', dragEnd);
+
             // 更新数据库中的位置
             updateMessagePosition(messageId, currentX, currentY);
-
-            document.removeEventListener('mousemove', drag);
-            document.removeEventListener('mouseup', dragEnd);
         }
     }
 
